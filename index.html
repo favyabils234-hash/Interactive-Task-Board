@@ -3,72 +3,104 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Flow - Internship Assessment</title>
+  <meta name="description" content="Blush Board – a pink Kanban Lite task board built with vanilla HTML, CSS and JavaScript." />
+  <title>Blush Board – Kanban Lite</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <h1>Task Flow Board</h1>
-      <p>Organise and track your project tasks efficiently.</p>
+  <div class="app">
+    <!-- ===== Header: brand, counter, theme toggle ===== -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-logo" aria-hidden="true">✿</span>
+        <div>
+          <h1>Blush Board</h1>
+          <p class="tagline">Plan it. Move it. Finish it.</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Bonus: task counter (active vs completed) with progress ring -->
+        <div class="stats" aria-live="polite">
+          <div class="ring" id="progress-ring" style="--pct:0">
+            <span id="progress-text">0%</span>
+          </div>
+          <div class="stats-text">
+            <strong id="active-count">0</strong> active ·
+            <strong id="done-count">0</strong> done
+          </div>
+        </div>
+
+        <!-- Bonus: dark mode toggle -->
+        <label class="theme-switch" title="Toggle dark mode">
+          <input type="checkbox" id="theme-toggle" aria-label="Toggle dark mode" />
+          <span class="slider"><span class="knob"></span></span>
+        </label>
+      </div>
     </header>
 
-    <!-- Controls & Creation Section -->
-    <section class="controls-section">
-      <form id="task-form" class="task-form">
-        <input type="text" id="task-title" placeholder="Task title..." required />
-        <select id="task-category" required>
-          <option value="" disabled selected>Select Category</option>
-          <option value="Development">Development</option>
-          <option value="Design">Design</option>
-          <option value="Marketing">Marketing</option>
-        </select>
-        <select id="task-priority" required>
-          <option value="" disabled selected>Select Priority</option>
-          <option value="Low">Low Priority</option>
-          <option value="Medium">Medium Priority</option>
-          <option value="High">High Priority</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Add Task</button>
-      </form>
+    <!-- ===== Task creation form ===== -->
+    <section class="panel" aria-labelledby="form-heading">
+      <h2 id="form-heading" class="panel-title">New task</h2>
+      <form id="task-form" class="task-form" autocomplete="off">
+        <input type="text" id="task-title" placeholder="What needs doing?" maxlength="80" required />
+        <textarea id="task-desc" placeholder="Add a short description (optional)" maxlength="240" rows="2"></textarea>
+        <div class="form-row">
+          <select id="task-category" required aria-label="Category">
+            <option value="" disabled selected>Category</option>
+            <option value="Development">Development</option>
+            <option value="Design">Design</option>
+            <option value="Marketing">Marketing</option>
+          </select>
 
-      <div class="filter-bar">
-        <input type="text" id="search-input" placeholder="Search tasks..." />
-        <select id="category-filter">
-          <option value="All">All Categories</option>
-          <option value="Development">Development</option>
-          <option value="Design">Design</option>
-          <option value="Marketing">Marketing</option>
-        </select>
-      </div>
+          <!-- Priority picked with pill-style radio buttons -->
+          <fieldset class="priority-picker">
+            <legend class="sr-only">Priority</legend>
+            <label><input type="radio" name="priority" value="Low" /><span class="pill low">Low</span></label>
+            <label><input type="radio" name="priority" value="Medium" checked /><span class="pill medium">Medium</span></label>
+            <label><input type="radio" name="priority" value="High" /><span class="pill high">High</span></label>
+          </fieldset>
+
+          <button type="submit" class="btn btn-primary">＋ Add task</button>
+        </div>
+      </form>
     </section>
 
-    <!-- Kanban Columns -->
-    <main class="board-container">
-      <div class="column" data-status="todo">
-        <div class="column-header">
-          <h2>To Do</h2>
-          <span class="task-count" id="count-todo">0</span>
-        </div>
-        <div class="task-list" id="list-todo"></div>
-      </div>
+    <!-- ===== Filters ===== -->
+    <section class="filter-bar" aria-label="Filter tasks">
+      <input type="search" id="search-input" placeholder="🔍 Search by title…" aria-label="Search tasks by title" />
+      <select id="category-filter" aria-label="Filter by category">
+        <option value="All">All categories</option>
+        <option value="Development">Development</option>
+        <option value="Design">Design</option>
+        <option value="Marketing">Marketing</option>
+      </select>
+      <button type="button" id="clear-done" class="btn btn-ghost">Clear completed</button>
+    </section>
 
-      <div class="column" data-status="in-progress">
-        <div class="column-header">
-          <h2>In Progress</h2>
-          <span class="task-count" id="count-in-progress">0</span>
-        </div>
-        <div class="task-list" id="list-in-progress"></div>
-      </div>
-
-      <div class="column" data-status="completed">
-        <div class="column-header">
-          <h2>Completed</h2>
-          <span class="task-count" id="count-completed">0</span>
-        </div>
-        <div class="task-list" id="list-completed"></div>
-      </div>
+    <!-- ===== Board ===== -->
+    <main class="board">
+      <section class="column" data-status="todo">
+        <header class="column-head"><h2>To Do</h2><span class="badge" data-count="todo">0</span></header>
+        <ul class="task-list" data-status="todo"></ul>
+      </section>
+      <section class="column" data-status="progress">
+        <header class="column-head"><h2>In Progress</h2><span class="badge" data-count="progress">0</span></header>
+        <ul class="task-list" data-status="progress"></ul>
+      </section>
+      <section class="column" data-status="done">
+        <header class="column-head"><h2>Completed</h2><span class="badge" data-count="done">0</span></header>
+        <ul class="task-list" data-status="done"></ul>
+      </section>
     </main>
+
+    <footer class="footer">Made with 💗 · Drag cards between columns or use the arrows</footer>
+  </div>
+
+  <!-- Small toast for feedback (e.g. undo delete) -->
+  <div id="toast" class="toast" role="status" hidden>
+    <span id="toast-msg"></span>
+    <button type="button" id="toast-undo" class="toast-btn">Undo</button>
   </div>
 
   <script src="script.js"></script>
